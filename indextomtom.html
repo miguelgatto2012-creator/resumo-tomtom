@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tomtom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Layout: cabeçalho fixo com abas estilo TikTok, trilha de etapas com setas, cartão de conteúdo e corações ao fundo */
+:root {
+  --bg: #FFE4EC;
+  --bg-soft: #FFF2F6;
+  --card: #FFFFFF;
+  --ink: #1E1420;
+  --muted: #6F5C68;
+  --accent: #E6174A;
+  --cyan: #25F4EE;
+  --line: #F5C6D6;
+  --ok: #138A4B;
+  --ok-bg: #E4F7EC;
+  --bad-bg: #FFE3E8;
+  --font-display: "Poppins", "Segoe UI", sans-serif;
+  --font-body: "DM Sans", "Segoe UI", sans-serif;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  background-image: radial-gradient(circle at 15% 0%, #FFF7FA 0, transparent 45%), radial-gradient(circle at 100% 100%, #FFD3E1 0, transparent 40%);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.65;
+  min-height: 100vh;
+}
+button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+
+/* corações decorativos */
+#hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.heart { position: absolute; bottom: -60px; fill: #FF5C86; opacity: 0; animation: float var(--d) linear forwards; }
+.heart svg { width: 100%; height: 100%; display: block; }
+.heart.still { animation: none; bottom: auto; opacity: .08; }
+@keyframes float {
+  0% { transform: translateY(0) rotate(-10deg); opacity: 0; }
+  15% { opacity: var(--o); }
+  85% { opacity: var(--o); }
+  100% { transform: translateY(-115vh) translateX(var(--x)) rotate(12deg); opacity: 0; }
+}
+
+/* cabeçalho */
+header {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(255, 228, 236, .92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.top { max-width: 800px; margin: 0 auto; padding: 14px 16px 0; }
+.brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.logo { font-family: var(--font-display); font-weight: 800; font-size: 28px; letter-spacing: -.03em; line-height: 1; text-shadow: -2px -2px 0 var(--cyan), 2px 2px 0 #FF3B6B; }
+.subject { font-size: 14px; font-weight: 600; background: var(--card); border: 1px solid var(--line); padding: 5px 16px; border-radius: 999px; }
+.tabs { display: flex; gap: 24px; overflow-x: auto; scrollbar-width: none; margin-top: 8px; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { background: none; border: 0; padding: 10px 0 14px; font-family: var(--font-display); font-weight: 600; font-size: 16px; color: var(--muted); position: relative; white-space: nowrap; transition: color .25s; }
+.tab::after { content: ""; position: absolute; left: 50%; bottom: 5px; width: 28px; height: 3px; border-radius: 3px; background: var(--ink); box-shadow: 2px 0 0 var(--cyan); transform: translateX(-50%) scaleX(0); transition: transform .35s var(--ease); }
+.tab[aria-selected="true"] { color: var(--ink); font-weight: 700; }
+.tab[aria-selected="true"]::after { transform: translateX(-50%) scaleX(1); }
+
+main { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; padding: 22px 16px 72px; }
+section[hidden] { display: none; }
+
+/* chips de capítulo */
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 7px 16px; font-size: 15px; font-weight: 500; transition: background .25s, color .25s, box-shadow .25s, border-color .25s; }
+.chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); box-shadow: 2px 2px 0 var(--cyan); }
+
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.2; text-wrap: balance; margin: 0; }
+.chapter-head { margin: 8px 0 20px; }
+.eyebrow { font-size: 14px; font-weight: 600; color: var(--accent); margin: 0 0 4px; }
+.chapter-head h1 { font-size: 34px; font-weight: 800; letter-spacing: -.02em; text-shadow: 2px 2px 0 var(--cyan); }
+.chapter-head p:not(.eyebrow) { margin: 10px 0 0; color: var(--muted); max-width: 60ch; }
+
+/* trilha de etapas com setas */
+.stepper { list-style: none; margin: 0 0 20px; padding: 4px 2px 12px; display: flex; align-items: flex-start; overflow-x: auto; scrollbar-width: none; position: relative; }
+.stepper::-webkit-scrollbar { display: none; }
+.stepper li { flex: none; display: flex; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 88px; background: none; border: 0; padding: 0; }
+.dot { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; font-size: 17px; background: var(--card); border: 2px solid var(--line); color: var(--muted); transition: transform .3s var(--ease), background .35s, border-color .35s, color .35s, box-shadow .35s; }
+.step:hover .dot { transform: scale(1.07); }
+.step.done .dot { background: var(--accent); border-color: var(--accent); color: #fff; }
+.step.current .dot { background: var(--card); border-color: var(--ink); color: var(--ink); box-shadow: 3px 3px 0 var(--cyan); transform: scale(1.06); }
+.step.done.current .dot { background: var(--accent); color: #fff; }
+.step-label { font-size: 14px; font-weight: 600; color: var(--muted); text-align: center; line-height: 1.25; transition: color .3s; }
+.step.current .step-label { color: var(--ink); }
+.arrow { width: 36px; height: 48px; align-items: center; justify-content: center; color: var(--line); transition: color .4s; }
+.arrow.on { color: var(--accent); }
+.arrow svg { width: 28px; height: 28px; }
+
+/* cartão de conteúdo */
+.card { background: var(--card); border-radius: 26px; padding: 26px 22px; box-shadow: 0 10px 30px rgba(230, 23, 74, .08); border: 1px solid #FBDCE6; scroll-margin-top: 150px; }
+.bar { height: 8px; background: var(--bg); border-radius: 8px; overflow: hidden; margin-bottom: 22px; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 8px; transition: width .6s var(--ease); }
+.progress-text { font-size: 14px; font-weight: 600; color: var(--muted); margin: 0 0 8px; }
+.card h2 { font-size: 28px; font-weight: 700; margin-bottom: 14px; }
+.card h3 { font-size: 20px; margin: 22px 0 6px; }
+.card p { margin: 0 0 14px; max-width: 62ch; }
+.card ul { margin: 0 0 14px; padding-left: 22px; max-width: 62ch; }
+.card li { margin-bottom: 8px; }
+.callout { background: var(--bg-soft); border-left: 4px solid var(--accent); border-radius: 0 16px 16px 0; padding: 14px 18px; margin: 18px 0; font-weight: 500; }
+.works { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); margin: 14px 0; }
+.work { background: var(--bg-soft); border-radius: 18px; padding: 16px; }
+.work b { font-family: var(--font-display); display: block; font-size: 17px; }
+.work small { color: var(--muted); display: block; margin-bottom: 6px; font-size: 14px; }
+.work span { font-size: 16px; line-height: 1.5; display: block; }
+
+.qa { border-top: 1px solid var(--line); padding: 14px 0; }
+.qa p { margin: 0 0 10px; font-weight: 600; }
+.qa .ans { background: var(--bg-soft); border-radius: 14px; padding: 12px 16px; margin-top: 10px; }
+.check { display: flex; gap: 14px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--line); cursor: pointer; }
+.check input { width: 24px; height: 24px; accent-color: var(--accent); margin-top: 2px; flex: none; }
+
+.nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 26px; }
+.btn { border: 2px solid var(--ink); background: var(--card); border-radius: 999px; padding: 11px 22px; font-weight: 600; font-size: 16px; transition: transform .2s var(--ease), opacity .2s, box-shadow .2s; }
+.btn:active:not(:disabled) { transform: scale(.97); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 3px 3px 0 var(--cyan); }
+.btn:disabled { opacity: .4; cursor: default; }
+.finished { text-align: center; padding: 14px 0 0; margin: 0; font-weight: 600; color: var(--accent); }
+
+.empty { text-align: center; padding: 40px 14px; color: var(--muted); }
+.empty h2 { color: var(--ink); font-size: 22px; margin-bottom: 8px; }
+.empty p { margin: 0 auto; }
+
+/* grade de capítulos */
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.cap { text-align: left; background: var(--card); border: 1px solid #FBDCE6; border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 8px 22px rgba(230, 23, 74, .06); transition: transform .3s var(--ease), box-shadow .3s; }
+.cap:hover { transform: translateY(-3px); box-shadow: 0 14px 28px rgba(230, 23, 74, .12); }
+.cap .num { font-family: var(--font-display); font-weight: 800; font-size: 14px; color: var(--accent); }
+.cap h3 { font-size: 21px; }
+.cap p { margin: 0; font-size: 16px; line-height: 1.5; color: var(--muted); }
+.cap .bar { margin: 6px 0 0; }
+.cap .meta { font-size: 14px; font-weight: 600; color: var(--muted); }
+
+/* flashcard */
+.flip { perspective: 1000px; width: 100%; background: none; border: 0; padding: 0; display: block; }
+.flip-in { position: relative; min-height: 260px; transition: transform .6s var(--ease); transform-style: preserve-3d; }
+.flip.show .flip-in { transform: rotateY(180deg); }
+.face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 26px; padding: 26px; display: grid; place-items: center; text-align: center; font-weight: 600; font-size: 22px; line-height: 1.4; background: var(--card); border: 1px solid #FBDCE6; box-shadow: 0 10px 30px rgba(230, 23, 74, .08); }
+.face.back { transform: rotateY(180deg); background: var(--ink); color: #fff; box-shadow: 4px 4px 0 var(--cyan); font-size: 20px; }
+.face small { display: block; font-size: 13px; font-weight: 600; opacity: .7; margin-bottom: 10px; letter-spacing: .06em; }
+.cardnav { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; }
+.cardnav span { font-weight: 600; color: var(--muted); }
+
+/* simulado */
+.qtext { font-family: var(--font-display); font-weight: 600; font-size: 21px; line-height: 1.4; margin: 0 0 18px; max-width: 62ch; }
+.opts { display: grid; gap: 10px; }
+.opt { display: flex; gap: 14px; align-items: flex-start; text-align: left; width: 100%; background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 14px 16px; font-size: 17px; line-height: 1.5; transition: border-color .25s, background .25s, transform .2s var(--ease); }
+.opt:hover:not(:disabled) { border-color: var(--ink); }
+.opt:active:not(:disabled) { transform: scale(.99); }
+.opt:disabled { cursor: default; color: var(--ink); }
+.letter { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; font-size: 14px; background: var(--bg); transition: background .25s, color .25s; }
+.opt.sel { border-color: var(--ink); background: var(--bg-soft); box-shadow: 3px 3px 0 var(--cyan); }
+.opt.sel .letter { background: var(--ink); color: #fff; }
+.opt.right { border-color: var(--ok); background: var(--ok-bg); }
+.opt.right .letter { background: var(--ok); color: #fff; }
+.opt.wrong { border-color: var(--accent); background: var(--bad-bg); }
+.opt.wrong .letter { background: var(--accent); color: #fff; }
+.exp { margin-top: 18px; background: var(--bg-soft); border-left: 4px solid var(--ink); border-radius: 0 16px 16px 0; padding: 14px 18px; font-size: 17px; }
+.exp b { display: block; font-family: var(--font-display); margin-bottom: 4px; }
+.score { font-family: var(--font-display); font-weight: 800; font-size: 52px; line-height: 1; text-shadow: 3px 3px 0 var(--cyan); margin: 6px 0 10px; }
+.review { list-style: none; padding: 0; margin: 20px 0 0; }
+.review li { border-top: 1px solid var(--line); padding: 12px 0; font-size: 16px; line-height: 1.5; margin: 0; }
+.review b { font-family: var(--font-display); }
+.review .ok { color: var(--ok); }
+.review .no { color: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .flip-in, .dot, .bar i, .tab::after, .opt, .chip, .cap, .btn, .arrow { transition: none; }
+  .heart { animation: none; }
+}
+@media (min-width: 640px) {
+  .card { padding: 34px 40px; }
+  .chapter-head h1 { font-size: 40px; }
+  .top { padding-top: 18px; }
+}
+</style>
+</head>
+<body>
+
+<div id="hearts" aria-hidden="true"></div>
+
+<header>
+  <div class="top">
+    <div class="brand">
+      <div class="logo">tomtom</div>
+      <div class="subject" id="subjectName"></div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Seções do site">
+      <button class="tab" role="tab" id="t-trilha" data-tab="trilha" aria-selected="true">Trilha de estudo</button>
+      <button class="tab" role="tab" id="t-capitulos" data-tab="capitulos" aria-selected="false">Capítulos</button>
+      <button class="tab" role="tab" id="t-revisao" data-tab="revisao" aria-selected="false">Revisão</button>
+      <button class="tab" role="tab" id="t-simulado" data-tab="simulado" aria-selected="false">Simulado</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section id="trilha" role="tabpanel" aria-labelledby="t-trilha"></section>
+  <section id="capitulos" role="tabpanel" aria-labelledby="t-capitulos" hidden></section>
+  <section id="revisao" role="tabpanel" aria-labelledby="t-revisao" hidden></section>
+  <section id="simulado" role="tabpanel" aria-labelledby="t-simulado" hidden></section>
+</main>
+
+<script>
+/* =====================================================================
+   CONTEÚDO DA MATÉRIA
+   Para trocar a matéria, edite só este bloco.
+   - Cada capítulo tem etapas (a trilha com setas), cartões de revisão
+     e questões de simulado (nível avançado, sempre sobre o capítulo).
+   - Tipos de etapa: "texto", "perguntas", "checklist".
+   - Blocos de texto: p, h, ul, destaque, obras.
+   - Questão do simulado: q = enunciado, o = 4 alternativas,
+     c = índice da correta (0 a 3), e = explicação.
+   ===================================================================== */
+const MATERIA = {
+  nome: "Artes",
+  capitulos: [
+    /* ---------------- 1. RENASCIMENTO ---------------- */
+    {
+      id: 1,
+      titulo: "Renascimento",
+      resumo: "A arte italiana que recuperou o ideal clássico e colocou o ser humano no centro (séculos XIV a XVI).",
+      etapas: [
+        { titulo: "Contexto", tipo: "texto", blocos: [
+          { t: "p", x: "O Renascimento nasceu na Itália, principalmente em Florença, entre os séculos XIV e XVI. As cidades-estado eram ricas pelo comércio e pelos bancos, e famílias como os Medici pagavam artistas para criar obras." },
+          { t: "h", x: "O que mudou na forma de pensar" },
+          { t: "ul", x: [
+            "Humanismo: o ser humano e a razão ganham valor.",
+            "Antropocentrismo: o homem passa a ser o centro do interesse, no lugar da visão centrada em Deus da Idade Média.",
+            "Valorização da Antiguidade greco-romana como modelo de beleza."
+          ]},
+          { t: "destaque", x: "A palavra “renascimento” indica o renascer dos ideais clássicos de equilíbrio, proporção e harmonia." }
+        ]},
+        { titulo: "Ideias-chave", tipo: "texto", blocos: [
+          { t: "p", x: "A pintura, a escultura e a arquitetura passaram a buscar realismo e proporção. Três conceitos aparecem em quase todo trabalho do período." },
+          { t: "h", x: "Perspectiva linear" },
+          { t: "p", x: "Técnica que cria a ilusão de profundidade em uma superfície plana, com linhas que convergem para um ponto de fuga. É associada a Brunelleschi e ao arquiteto Alberti." },
+          { t: "h", x: "Sfumato e claro-escuro" },
+          { t: "p", x: "O sfumato suaviza os contornos como se fossem uma fumaça leve, e é marca de Leonardo da Vinci. O claro-escuro usa luz e sombra para dar volume às figuras." },
+          { t: "h", x: "Anatomia e proporção" },
+          { t: "p", x: "Os artistas estudavam o corpo humano para representá-lo com exatidão, e a escultura voltou a usar o nu e a postura natural." }
+        ]},
+        { titulo: "Artistas e obras", tipo: "texto", blocos: [
+          { t: "p", x: "Alguns nomes e obras que costumam cair em prova:" },
+          { t: "obras", x: [
+            { nome: "Mona Lisa", autor: "Leonardo da Vinci", ano: "c. 1503–1506", nota: "Exemplo famoso de sfumato." },
+            { nome: "A Última Ceia", autor: "Leonardo da Vinci", ano: "c. 1495–1498", nota: "Perspectiva central e composição equilibrada." },
+            { nome: "Davi", autor: "Michelangelo", ano: "1501–1504", nota: "Escultura em mármore com anatomia detalhada." },
+            { nome: "Teto da Capela Sistina", autor: "Michelangelo", ano: "1508–1512", nota: "Afrescos no Vaticano." },
+            { nome: "A Escola de Atenas", autor: "Rafael Sanzio", ano: "1509–1511", nota: "Reúne filósofos antigos em uma arquitetura clássica." },
+            { nome: "O Nascimento de Vênus", autor: "Sandro Botticelli", ano: "c. 1484–1486", nota: "Tema mitológico no Quattrocento." }
+          ]}
+        ]},
+        { titulo: "Fixar", tipo: "perguntas", itens: [
+          { q: "Onde e quando surgiu o Renascimento?", a: "Na Itália, com centro em Florença, entre os séculos XIV e XVI." },
+          { q: "O que é antropocentrismo?", a: "A visão que coloca o ser humano como centro do interesse e do conhecimento." },
+          { q: "Para que serve a perspectiva linear?", a: "Para criar a ilusão de profundidade numa superfície plana, usando linhas que convergem para um ponto de fuga." },
+          { q: "Qual técnica de Leonardo suaviza os contornos?", a: "O sfumato." },
+          { q: "Quem pintou A Escola de Atenas?", a: "Rafael Sanzio." }
+        ]},
+        { titulo: "Revisar", tipo: "checklist", itens: [
+          "Sei explicar o que foi o humanismo.",
+          "Consigo diferenciar sfumato de claro-escuro.",
+          "Lembro de pelo menos uma obra de cada artista.",
+          "Sei dizer por que a Itália foi o centro do movimento."
+        ]}
+      ],
+      cards: [
+        ["Humanismo", "Corrente que valoriza o ser humano, a razão e o conhecimento."],
+        ["Perspectiva linear", "Técnica de profundidade com linhas convergindo para um ponto de fuga."],
+        ["Sfumato", "Contornos suaves e esfumaçados, típicos de Leonardo da Vinci."],
+        ["Medici", "Família de banqueiros de Florença que patrocinava artistas."],
+        ["Davi", "Escultura de Michelangelo em mármore, feita entre 1501 e 1504."]
+      ],
+      simulado: [
+        { q: "Sobre a perspectiva atmosférica (ou aérea), técnica explorada por Leonardo da Vinci, é correto afirmar que ela",
+          o: ["cria profundidade por linhas que convergem para um único ponto de fuga.",
+              "sugere distância ao suavizar contornos e esmaecer ou azular os planos mais afastados.",
+              "dispensa qualquer variação de cor e usa apenas o tamanho das figuras.",
+              "foi abandonada no Renascimento em favor da pintura chapada, sem volume."],
+          c: 1, e: "A perspectiva linear usa linhas convergentes. A atmosférica imita o efeito do ar, que reduz a nitidez e o contraste e tende ao azul nos planos distantes." },
+        { q: "Qual associação entre período e características do Renascimento italiano está correta?",
+          o: ["Quattrocento: século XIV, arte bizantina, figuras planas e sem perspectiva.",
+              "Quattrocento: século XVI, centrado em Veneza, sem interesse pela Antiguidade.",
+              "Cinquecento: século XVI, Alta Renascença, com Leonardo, Michelangelo e Rafael no auge.",
+              "Cinquecento: século XV, centrado em Florença, com ênfase em Botticelli."],
+          c: 2, e: "Quattrocento designa o século XV (Florença, Masaccio, Botticelli). Cinquecento designa o século XVI, com a Alta Renascença de Leonardo, Michelangelo e Rafael." },
+        { q: "O mecenato exercido por famílias como os Medici teve, no contexto renascentista, o efeito de",
+          o: ["financiar encomendas e contribuir para que o artista passasse da condição de artesão à de intelectual reconhecido.",
+              "proibir temas mitológicos e restringir a produção a assuntos religiosos.",
+              "substituir as guildas por escolas estatais gratuitas de arte.",
+              "eliminar a encomenda privada e concentrar toda a produção na Igreja."],
+          c: 0, e: "A encomenda privada e o prestígio das cortes e dos banqueiros impulsionaram a valorização social do artista, que passou a ser visto como pensador." },
+        { q: "Na Escola de Atenas, de Rafael, Platão e Aristóteles aparecem ao centro com gestos distintos. A leitura mais aceita desses gestos é:",
+          o: ["Platão estende a mão à frente e Aristóteles aponta para o alto.",
+              "ambos apontam para o chão, indicando a primazia da matéria.",
+              "ambos seguram esferas, símbolo da astronomia medieval.",
+              "Platão aponta para o alto, ligado ao mundo das ideias, e Aristóteles estende a mão à frente, ligado à observação do mundo concreto."],
+          c: 3, e: "O contraste entre os gestos resume a diferença entre o idealismo platônico e o empirismo aristotélico, tema caro ao humanismo renascentista." },
+        { q: "A Última Ceia, de Leonardo, deteriorou-se cedo principalmente porque",
+          o: ["foi pintada em têmpera sobre madeira e danificada no transporte.",
+              "Leonardo experimentou técnicas sobre parede seca, em vez do afresco tradicional sobre reboco úmido.",
+              "foi feita em mosaico, material muito sensível à umidade.",
+              "usou o afresco tradicional, que desbota rapidamente sob a luz."],
+          c: 1, e: "O afresco exige rapidez sobre o reboco úmido. Leonardo preferiu um método que permitia retoques, mas era menos durável." }
+      ]
+    },
+
+    /* ---------------- 2. BARROCO ---------------- */
+    {
+      id: 2,
+      titulo: "Barroco",
+      resumo: "Arte do século XVII e início do XVIII, marcada por emoção, movimento e contrastes fortes.",
+      etapas: [
+        { titulo: "Contexto", tipo: "texto", blocos: [
+          { t: "p", x: "O Barroco se desenvolveu entre o início do século XVII e meados do século XVIII, a partir da Itália, e se espalhou pela Europa e pelas colônias americanas." },
+          { t: "h", x: "Forças que moldaram o estilo" },
+          { t: "ul", x: [
+            "Contrarreforma: depois do Concílio de Trento (1545–1563), a Igreja Católica passou a usar a arte para emocionar e reforçar a fé.",
+            "Monarquias absolutistas: reis e cortes encomendavam obras para mostrar poder e riqueza.",
+            "Ciência e novos olhares: o gosto pelo contraste e pela observação convive com o drama religioso."
+          ]},
+          { t: "destaque", x: "Se o Renascimento busca equilíbrio, o Barroco busca emoção e movimento." }
+        ]},
+        { titulo: "Ideias-chave", tipo: "texto", blocos: [
+          { t: "h", x: "Contraste de luz e sombra" },
+          { t: "p", x: "O tenebrismo coloca figuras iluminadas contra um fundo muito escuro. Caravaggio é o grande nome dessa técnica." },
+          { t: "h", x: "Dinamismo e teatralidade" },
+          { t: "p", x: "Diagonais, curvas e gestos intensos dão sensação de movimento. As cenas parecem momentos de teatro, e o espectador é envolvido." },
+          { t: "h", x: "Ornamentação" },
+          { t: "p", x: "Igrejas e palácios recebem talha dourada, esculturas e pinturas que cobrem o espaço. Na análise de Wölfflin, o Renascimento tem forma fechada e o Barroco, forma aberta." }
+        ]},
+        { titulo: "Artistas e obras", tipo: "texto", blocos: [
+          { t: "obras", x: [
+            { nome: "A Vocação de São Mateus", autor: "Caravaggio", ano: "c. 1599–1600", nota: "Luz dramática que entra na cena como um foco." },
+            { nome: "Êxtase de Santa Teresa", autor: "Gian Lorenzo Bernini", ano: "1647–1652", nota: "Mármore, arquitetura e luz formam uma cena teatral em Roma." },
+            { nome: "A Ronda Noturna", autor: "Rembrandt", ano: "1642", nota: "Retrato coletivo cheio de movimento e contraste." },
+            { nome: "As Meninas", autor: "Diego Velázquez", ano: "1656", nota: "Jogo complexo de olhares e espaços." },
+            { nome: "Moça com Brinco de Pérola", autor: "Johannes Vermeer", ano: "c. 1665", nota: "Luz suave e retrato íntimo, típico da Holanda." },
+            { nome: "Profetas de Congonhas", autor: "Aleijadinho", ano: "c. 1800–1805", nota: "Esculpidos em pedra-sabão, no barroco mineiro." }
+          ]}
+        ]},
+        { titulo: "Fixar", tipo: "perguntas", itens: [
+          { q: "Que acontecimento religioso ajuda a explicar o Barroco?", a: "A Contrarreforma, com o Concílio de Trento, que estimulou uma arte emotiva para reforçar a fé católica." },
+          { q: "O que é tenebrismo?", a: "Contraste muito forte entre luz e um fundo escuro, usado por Caravaggio." },
+          { q: "Qual é a diferença de composição entre Renascimento e Barroco?", a: "Renascimento: forma fechada e equilibrada. Barroco: forma aberta, com diagonais e movimento." },
+          { q: "Quem foi o principal escultor barroco italiano?", a: "Gian Lorenzo Bernini." }
+        ]}
+      ],
+      cards: [
+        ["Contrarreforma", "Reação da Igreja Católica à Reforma protestante, que estimulou a arte emotiva."],
+        ["Tenebrismo", "Luz intensa sobre fundo escuro, como em Caravaggio."],
+        ["Forma aberta", "Composição com diagonais e movimento, típica do Barroco."],
+        ["Aleijadinho", "Antônio Francisco Lisboa, expoente do barroco mineiro."]
+      ],
+      simulado: [
+        { q: "Qual afirmação explica melhor a relação entre o Concílio de Trento e a estética barroca?",
+          o: ["O concílio proibiu as imagens religiosas, o que levou os artistas a pintar apenas paisagens.",
+              "O concílio determinou o uso exclusivo da perspectiva linear nos templos.",
+              "O concílio defendeu o valor devocional das imagens, e a Igreja passou a estimular obras emotivas e impactantes para reforçar a fé.",
+              "O concílio extinguiu o mecenato, e a arte passou a ser financiada apenas por burgueses protestantes."],
+          c: 2, e: "Trento reafirmou o papel das imagens na devoção. A Igreja favoreceu uma arte clara, emotiva e teatral, que convencesse pelos sentidos." },
+        { q: "O tenebrismo, associado a Caravaggio, caracteriza-se por",
+          o: ["contraste muito acentuado entre áreas iluminadas e fundo escuro, com a luz funcionando como foco dramático.",
+              "suavização dos contornos por camadas finas e translúcidas de tinta, como no sfumato.",
+              "predomínio de cores claras e pastéis, sem sombras marcadas.",
+              "uso de pontos de cor pura para obter mistura óptica."],
+          c: 0, e: "No tenebrismo a luz recorta as figuras no escuro e dirige o olhar. O sfumato, ao contrário, dissolve os contornos." },
+        { q: "Segundo a análise de Heinrich Wölfflin, o contraste entre composição renascentista e barroca é que",
+          o: ["o Renascimento usa diagonais e movimento, e o Barroco usa simetria rígida.",
+              "ambos usam forma fechada, mas o Barroco abandona a cor.",
+              "o Renascimento é pictórico e sem contornos, e o Barroco é estritamente linear.",
+              "o Renascimento tende à forma fechada, estável e linear, e o Barroco à forma aberta, com diagonais, movimento e efeito pictórico."],
+          c: 3, e: "Wölfflin contrapôs o linear e fechado do Renascimento ao pictórico e aberto do Barroco, o que ajuda a reconhecer cada estilo pela composição." },
+        { q: "Êxtase de Santa Teresa, de Bernini, é considerado exemplo de arte barroca porque",
+          o: ["é uma escultura isolada, de forma fechada e sem relação com o espaço ao redor.",
+              "combina escultura em mármore, arquitetura e luz natural em uma cena teatral que envolve o espectador.",
+              "é um afresco que cobre o teto da capela com figuras em perspectiva.",
+              "é uma obra em bronze fundido, voltada ao estudo da anatomia atlética."],
+          c: 1, e: "Na Capela Cornaro, em Roma, a obra foi pensada como conjunto: luz, mármore e arquitetura criam um espetáculo emocional." },
+        { q: "Qual alternativa associa corretamente artista, obra e contexto no Barroco brasileiro?",
+          o: ["Mestre Valentim, que esculpiu os Profetas em mármore no Rio de Janeiro.",
+              "Debret, que pintou os Profetas em tela durante a Missão Artística Francesa.",
+              "Aleijadinho, expoente do barroco mineiro, autor dos Profetas em pedra-sabão em Congonhas (MG).",
+              "Portinari, que criou os Profetas como painéis de azulejo no modernismo."],
+          c: 2, e: "Antônio Francisco Lisboa, o Aleijadinho, esculpiu os doze Profetas do Santuário do Bom Jesus de Matosinhos, em Congonhas, em pedra-sabão." }
+      ]
+    },
+
+    /* ---------------- 3. IMPRESSIONISMO ---------------- */
+    {
+      id: 3,
+      titulo: "Impressionismo",
+      resumo: "Movimento francês da segunda metade do século XIX que pintou a luz, a cor e o instante.",
+      etapas: [
+        { titulo: "Contexto", tipo: "texto", blocos: [
+          { t: "p", x: "O Impressionismo surgiu na França, na segunda metade do século XIX, em uma Paris em transformação pela Revolução Industrial e pelas reformas urbanas." },
+          { t: "h", x: "O ambiente da época" },
+          { t: "ul", x: [
+            "O Salão oficial favorecia a pintura acadêmica e recusava muitos artistas novos.",
+            "Em 1863, o Salão dos Recusados mostrou as obras rejeitadas, entre elas a de Manet.",
+            "A fotografia e as tintas em tubo mudaram a forma de ver e de pintar."
+          ]},
+          { t: "destaque", x: "O nome vem de “Impressão, nascer do sol”, de Monet (1872), citada com ironia por um crítico após a exposição independente de 1874." }
+        ]},
+        { titulo: "Ideias-chave", tipo: "texto", blocos: [
+          { t: "h", x: "Luz e cor" },
+          { t: "p", x: "Os artistas queriam captar como a luz muda a cor das coisas ao longo do dia. As sombras ganham cores, em vez de preto." },
+          { t: "h", x: "Pintura ao ar livre" },
+          { t: "p", x: "Com tintas em tubo, ficou fácil pintar fora do ateliê, a técnica chamada de en plein air." },
+          { t: "h", x: "Pinceladas visíveis" },
+          { t: "p", x: "Pinceladas curtas e rápidas, com cores puras lado a lado, que se misturam no olho de quem vê. Os temas são cenas do cotidiano, lazer e paisagens." }
+        ]},
+        { titulo: "Artistas e obras", tipo: "texto", blocos: [
+          { t: "obras", x: [
+            { nome: "Impressão, nascer do sol", autor: "Claude Monet", ano: "1872", nota: "Obra que deu nome ao movimento." },
+            { nome: "Baile no Moulin de la Galette", autor: "Pierre-Auguste Renoir", ano: "1876", nota: "Luz filtrada e cena de convívio social." },
+            { nome: "A Aula de Dança", autor: "Edgar Degas", ano: "c. 1873–1876", nota: "Interior, bailarinas e enquadramento inusitado." },
+            { nome: "O Berço", autor: "Berthe Morisot", ano: "1872", nota: "Cena íntima e pincelada leve." },
+            { nome: "Almoço na relva", autor: "Édouard Manet", ano: "1863", nota: "Precursor, exposto no Salão dos Recusados." },
+            { nome: "Série Nenúfares", autor: "Claude Monet", ano: "c. 1897–1926", nota: "Jardim de Giverny, quase abstrato." }
+          ]}
+        ]},
+        { titulo: "Fixar", tipo: "perguntas", itens: [
+          { q: "De onde vem o nome Impressionismo?", a: "Da tela “Impressão, nascer do sol”, de Monet, citada com ironia por um crítico em 1874." },
+          { q: "Por que as tintas em tubo foram importantes?", a: "Permitiram pintar ao ar livre, com facilidade de transporte." },
+          { q: "O que é en plein air?", a: "Pintar ao ar livre, diante da paisagem." },
+          { q: "Que artista pós-impressionista criou o pontilhismo?", a: "Georges Seurat." }
+        ]}
+      ],
+      cards: [
+        ["En plein air", "Pintura feita ao ar livre, diante do tema."],
+        ["Salão dos Recusados", "Exposição de 1863 com obras rejeitadas pelo Salão oficial."],
+        ["Mistura óptica", "Cores puras lado a lado que se misturam no olho de quem vê."],
+        ["Pós-impressionismo", "Artistas que partiram do Impressionismo, como Seurat, Cézanne, Van Gogh e Gauguin."]
+      ],
+      simulado: [
+        { q: "A origem do nome “Impressionismo” está ligada a",
+          o: ["um salão oficial de Paris que recusou os artistas do grupo.",
+              "um manifesto escrito por Manet em 1863.",
+              "uma crítica elogiosa de Cézanne à obra de Seurat.",
+              "Impressão, nascer do sol, de Monet, citada com ironia pelo crítico Louis Leroy ao comentar a exposição de 1874."],
+          c: 3, e: "O crítico usou o título da tela de Monet de forma depreciativa. O grupo adotou o termo e passou a usá-lo." },
+        { q: "Qual foi a importância das tintas pré-misturadas em tubos portáteis para os impressionistas?",
+          o: ["Facilitaram pintar fora do ateliê e captar variações de luz em curto intervalo.",
+              "Tornaram obrigatório o uso do preto para sombras.",
+              "Permitiram a pintura a fresco sobre reboco úmido.",
+              "Eliminaram a necessidade de pincéis, já que bastava a espátula."],
+          c: 0, e: "A pintura ao ar livre exigia material portátil. Com os tubos, os pintores registravam a luz de cada momento." },
+        { q: "Qual artista sistematizou a justaposição de pontos de cor pura para obter mistura óptica?",
+          o: ["Claude Monet, em todas as séries de nenúfares.",
+              "Edgar Degas, que se dedicou só à paisagem ao ar livre.",
+              "Georges Seurat, pós-impressionista que criou o pontilhismo.",
+              "Paul Gauguin, que defendeu a cor chapada e o sintetismo."],
+          c: 2, e: "Seurat transformou a intuição impressionista em método, inspirado em teorias sobre a cor. Gauguin seguiu outro caminho, o da cor chapada." },
+        { q: "O que distingue Edgar Degas dentro do grupo impressionista?",
+          o: ["Pintava exclusivamente paisagens ao ar livre e evitava figuras humanas.",
+              "Preferia cenas de interior, como ensaios de balé e teatro, com enquadramentos inusitados influenciados pela fotografia e pelas estampas japonesas.",
+              "Rejeitava o desenho e trabalhava apenas com manchas de cor, sem composição.",
+              "Defendia a pintura acadêmica e nunca expôs com o grupo."],
+          c: 1, e: "Degas expôs com os impressionistas, mas era mais interessado em desenho, composição e vida urbana do que em paisagem." },
+        { q: "O Salão dos Recusados, de 1863, foi relevante para o Impressionismo porque",
+          o: ["foi a primeira exposição do grupo impressionista, com todos os integrantes.",
+              "foi organizado pelo Estado para premiar a pintura acadêmica.",
+              "promoveu o pontilhismo como nova escola oficial.",
+              "exibiu obras recusadas pelo Salão oficial, como a de Manet, e mostrou a possibilidade de circuitos independentes de exposição, caminho seguido pelos impressionistas em 1874."],
+          c: 3, e: "A exposição mostrou que havia público fora do Salão. Em 1874 o grupo organizou sua própria exposição, longe do júri oficial." }
+      ]
+    },
+
+    /* ---------------- 4. VANGUARDAS MODERNAS ---------------- */
+    {
+      id: 4,
+      titulo: "Vanguardas Modernas",
+      resumo: "Os “ismos” do início do século XX, que romperam com a representação realista.",
+      etapas: [
+        { titulo: "Contexto", tipo: "texto", blocos: [
+          { t: "p", x: "No início do século XX, a fotografia, a industrialização, as ideias de Freud e a Primeira Guerra Mundial (1914–1918) levaram os artistas a questionar a representação realista." },
+          { t: "ul", x: [
+            "Surgem vários movimentos, chamados de vanguardas ou “ismos”.",
+            "Cada um propõe uma nova resposta à pergunta: o que a arte deve mostrar?",
+            "Os manifestos viram parte da obra, em textos que defendem as ideias do grupo."
+          ]},
+          { t: "destaque", x: "No Brasil, a Semana de Arte Moderna de 1922, em São Paulo, marcou a chegada das vanguardas." }
+        ]},
+        { titulo: "Ideias-chave", tipo: "texto", blocos: [
+          { t: "h", x: "Fauvismo e Expressionismo" },
+          { t: "p", x: "O Fauvismo (Matisse, 1905) usa cores puras e arbitrárias. O Expressionismo deforma formas e cores para mostrar emoções intensas." },
+          { t: "h", x: "Cubismo" },
+          { t: "p", x: "Picasso e Braque mostram o objeto de vários pontos de vista ao mesmo tempo. Na fase analítica, as formas se fragmentam. Na sintética, surgem a colagem e cores mais vivas." },
+          { t: "h", x: "Dadaísmo, Surrealismo e Abstracionismo" },
+          { t: "p", x: "O Dadaísmo questiona o que é arte. O Surrealismo explora o inconsciente e os sonhos. O Abstracionismo dispensa a representação de objetos reconhecíveis, com nomes como Kandinsky e Mondrian." }
+        ]},
+        { titulo: "Artistas e obras", tipo: "texto", blocos: [
+          { t: "obras", x: [
+            { nome: "Les Demoiselles d’Avignon", autor: "Pablo Picasso", ano: "1907", nota: "Marco da ruptura que levou ao Cubismo." },
+            { nome: "A Fonte", autor: "Marcel Duchamp", ano: "1917", nota: "Ready-made, objeto industrial apresentado como arte." },
+            { nome: "A Persistência da Memória", autor: "Salvador Dalí", ano: "1931", nota: "Imagem onírica do Surrealismo." },
+            { nome: "Composição VII", autor: "Wassily Kandinsky", ano: "1913", nota: "Abstração expressiva de cores e formas." },
+            { nome: "Abaporu", autor: "Tarsila do Amaral", ano: "1928", nota: "Inspirou o Movimento Antropofágico." },
+            { nome: "O Grito", autor: "Edvard Munch", ano: "1893", nota: "Precursor do Expressionismo." }
+          ]}
+        ]},
+        { titulo: "Fixar", tipo: "perguntas", itens: [
+          { q: "O que marca o Fauvismo?", a: "O uso de cores puras e arbitrárias, com função expressiva, em artistas como Matisse." },
+          { q: "O que é um ready-made?", a: "Objeto industrial escolhido e apresentado como obra de arte, como A Fonte, de Duchamp." },
+          { q: "Qual a diferença entre Cubismo analítico e sintético?", a: "O analítico fragmenta o objeto em planos com paleta restrita. O sintético usa colagem e cores mais vivas." },
+          { q: "Que obra de Tarsila inspirou o Movimento Antropofágico?", a: "O Abaporu, de 1928." }
+        ]}
+      ],
+      cards: [
+        ["Fauvismo", "Cores puras e arbitrárias, liderado por Matisse (1905)."],
+        ["Ready-made", "Objeto industrial apresentado como arte, ideia de Duchamp."],
+        ["Cubismo", "Vários pontos de vista no mesmo plano, com Picasso e Braque."],
+        ["Antropofagia", "Proposta de “devorar” influências estrangeiras e recriá-las com identidade brasileira."]
+      ],
+      simulado: [
+        { q: "Em relação às duas fases do Cubismo, é correto afirmar que o Cubismo sintético",
+          o: ["marca o retorno à perspectiva linear e ao modelado de luz e sombra.",
+              "é pura abstração geométrica, sem qualquer tema reconhecível.",
+              "introduz a colagem e cores mais vivas, depois da fase analítica de formas fragmentadas e paleta restrita.",
+              "surge como reação ao Dadaísmo, com foco em sonhos e inconsciente."],
+          c: 2, e: "A fase analítica fragmenta o objeto em planos de ocres e cinzas. Na sintética, a colagem (papiers collés) traz fragmentos reais e a cor volta." },
+        { q: "A Fonte, de Marcel Duchamp (1917), é um marco da arte moderna porque",
+          o: ["celebra a velocidade e as máquinas, como defendia o Futurismo.",
+              "resgata a técnica acadêmica de modelagem em mármore.",
+              "registra um sonho com imagens oníricas precisas, segundo o Surrealismo.",
+              "questiona o que define uma obra de arte ao deslocar um objeto industrial para o contexto artístico, valorizando a ideia e a escolha do artista mais que a habilidade manual."],
+          c: 3, e: "Apresentada sob o pseudônimo R. Mutt, a peça inaugura a ideia de ready-made e influencia toda a arte conceitual posterior." },
+        { q: "A marca principal do Fauvismo, a partir do Salon d’Automne de 1905, é",
+          o: ["o uso de cores reais e sombras acinzentadas, sem função expressiva.",
+              "o uso de cores puras e arbitrárias, desligadas da cor real dos objetos, com função expressiva.",
+              "a decomposição em planos geométricos com paleta de ocres.",
+              "a justaposição de pontos para mistura óptica."],
+          c: 1, e: "O apelido “fauves” (feras) partiu de um crítico. Matisse e seus colegas liberaram a cor da obrigação de imitar a natureza." },
+        { q: "Qual afirmação sobre o Abaporu, de Tarsila do Amaral, está correta?",
+          o: ["Inspirou o Manifesto Antropófago, de Oswald de Andrade (1928), que propunha “devorar” influências estrangeiras e recriá-las com identidade brasileira.",
+              "Foi a obra central da Semana de Arte Moderna de 1922, exposta no Teatro Municipal.",
+              "Foi pintada por Anita Malfatti em 1917 e criticada por Monteiro Lobato.",
+              "Representa o Cubismo analítico europeu sem diálogo com temas brasileiros."],
+          c: 0, e: "Tarsila deu a tela de presente a Oswald em 1928, e a imagem originou o Movimento Antropofágico. Ela estava fora do país durante a Semana de 22." },
+        { q: "A obra de Piet Mondrian a partir da década de 1920 é associada ao",
+          o: ["Expressionismo abstrato, com gestos livres e manchas espontâneas.",
+              "Futurismo, com formas dinâmicas para representar a velocidade.",
+              "Neoplasticismo, com linhas ortogonais pretas e cores primárias sobre fundo branco, em busca de uma ordem universal.",
+              "Surrealismo, com automatismo psíquico e imagens oníricas."],
+          c: 2, e: "Ligado ao grupo De Stijl, Mondrian reduziu a pintura a linhas retas e cores primárias para expressar equilíbrio e harmonia universais." }
+      ]
+    }
+  ]
+};
+
+/* =====================================================================
+   ESTADO (salvo no navegador de quem usa, quando possível)
+   ===================================================================== */
+const KEY = "tomtom-v1";
+let state = { cap: 1, etapa: 0, done: {}, checks: {}, card: 0, virado: false, aba: "trilha", sim: {} };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && typeof s === "object") state = Object.assign(state, s); } catch (e) {}
+state.virado = false;
+function salvar() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+const $ = (id) => document.getElementById(id);
+const reduz = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const capAtual = () => MATERIA.capitulos.find(c => c.id === state.cap) || MATERIA.capitulos[0];
+const feitas = (c) => (state.done[c.id] || []).filter(Boolean).length;
+const pct = (c) => c.vazio ? 0 : Math.round(100 * feitas(c) / c.etapas.length);
+
+/* ---------- animações suaves ---------- */
+function anim(el, kf, opt) {
+  if (reduz || !el || !el.animate) return Promise.resolve();
+  return el.animate(kf, opt).finished.catch(() => {});
+}
+const seqs = new WeakMap();
+function swap(el, html, animate) {
+  const my = (seqs.get(el) || 0) + 1; seqs.set(el, my);
+  if (!animate || reduz) { el.innerHTML = html; return; }
+  anim(el, [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(6px)" }], { duration: 150, easing: "ease-out", fill: "forwards" }).then(() => {
+    if (seqs.get(el) !== my) return;
+    el.innerHTML = html;
+    el.getAnimations().forEach(a => a.cancel());
+    anim(el, [{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 340, easing: "cubic-bezier(.2,.7,.2,1)" });
+  });
+}
+function reveal(el) {
+  el.hidden = false;
+  anim(el, [{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: "cubic-bezier(.2,.7,.2,1)" });
+}
+
+const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 5l7 7-7 7"/></svg>';
+
+function chips() {
+  return '<div class="chips" role="group" aria-label="Capítulos">' + MATERIA.capitulos.map(c =>
+    `<button class="chip" data-cap="${c.id}" aria-pressed="${c.id === state.cap}">Cap. ${c.id} · ${c.titulo}</button>`
+  ).join("") + "</div>";
+}
+function head(titulo, sub) {
+  const c = capAtual();
+  return `<div class="chapter-head"><p class="eyebrow">Capítulo ${c.id} · ${c.titulo}</p><h1>${titulo}</h1>${sub ? `<p>${sub}</p>` : ""}</div>`;
+}
+function vazio(msg) {
+  return `<div class="card empty"><h2>Este capítulo espera o conteúdo</h2><p>${msg}</p></div>`;
+}
+
+/* ---------- Trilha ---------- */
+function bloco(b) {
+  if (b.t === "p") return `<p>${b.x}</p>`;
+  if (b.t === "h") return `<h3>${b.x}</h3>`;
+  if (b.t === "ul") return "<ul>" + b.x.map(i => `<li>${i}</li>`).join("") + "</ul>";
+  if (b.t === "destaque") return `<div class="callout">${b.x}</div>`;
+  if (b.t === "obras") return '<div class="works">' + b.x.map(o =>
+    `<div class="work"><b>${o.nome}</b><small>${o.autor} · ${o.ano}</small><span>${o.nota}</span></div>`).join("") + "</div>";
+  return "";
+}
+
+function stageHTML(c) {
+  const e = c.etapas[state.etapa];
+  let h = `<h2>${e.titulo}</h2>`;
+  if (e.tipo === "texto") h += e.blocos.map(bloco).join("");
+  if (e.tipo === "perguntas") h += e.itens.map((q, i) =>
+    `<div class="qa"><p>${i + 1}. ${q.q}</p><button class="btn" data-ans="${i}">Ver resposta</button><div class="ans" hidden>${q.a}</div></div>`).join("");
+  if (e.tipo === "checklist") h += e.itens.map((t, i) => {
+    const k = `${c.id}-${state.etapa}-${i}`;
+    return `<label class="check"><input type="checkbox" data-check="${k}" ${state.checks[k] ? "checked" : ""}><span>${t}</span></label>`;
+  }).join("");
+  return h;
+}
+
+function renderTrilha() {
+  const c = capAtual();
+  let h = chips() + `<div class="chapter-head"><p class="eyebrow">Capítulo ${c.id}</p><h1>${c.titulo}</h1><p>${c.resumo}</p></div>`;
+  if (c.vazio) { $("trilha").innerHTML = h + vazio("Quando a matéria chegar, ela é dividida em etapas de estudo e aparece aqui com a trilha de setas."); return; }
+  let d = state.done[c.id];
+  if (!d || d.length !== c.etapas.length) d = state.done[c.id] = c.etapas.map(() => false);
+  if (state.etapa >= c.etapas.length) state.etapa = 0;
+  const total = c.etapas.length;
+  h += '<ol class="stepper" id="stepper" aria-label="Etapas do capítulo">';
+  c.etapas.forEach((et, i) => {
+    h += `<li><button class="step" data-etapa="${i}"><span class="dot"></span><span class="step-label">${et.titulo}</span></button></li>`;
+    if (i < total - 1) h += `<li class="arrow" aria-hidden="true">${ARROW}</li>`;
+  });
+  h += `</ol><article class="card" id="card"><p class="progress-text" id="ptxt"></p>
+    <div class="bar"><i id="pbar"></i></div><div id="stageBody"></div>
+    <div class="nav"><button class="btn" id="bBack" data-nav="-1">← Voltar</button><button class="btn primary" id="bNext" data-nav="1"></button></div>
+    <p class="finished" id="fin" hidden>Capítulo concluído. Bom trabalho!</p></article>`;
+  $("trilha").innerHTML = h;
+  updateTrilha(false);
+}
+
+function centerStep() {
+  const st = $("stepper"); if (!st) return;
+  const b = st.querySelector(".step.current"); if (!b) return;
+  st.scrollTo({ left: b.parentElement.offsetLeft - (st.clientWidth - b.offsetWidth) / 2, behavior: reduz ? "auto" : "smooth" });
+}
+
+function updateTrilha(animate) {
+  const c = capAtual(); if (c.vazio) return;
+  const d = state.done[c.id], total = c.etapas.length;
+  document.querySelectorAll("#trilha .step").forEach((b, i) => {
+    b.className = "step" + (d[i] ? " done" : "") + (i === state.etapa ? " current" : "");
+    b.querySelector(".dot").textContent = d[i] ? "✓" : i + 1;
+    if (i === state.etapa) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+  });
+  document.querySelectorAll("#trilha .arrow").forEach((a, i) => a.classList.toggle("on", !!d[i]));
+  $("ptxt").textContent = `Etapa ${state.etapa + 1} de ${total} · ${pct(c)}% concluído`;
+  $("pbar").style.width = pct(c) + "%";
+  $("bBack").disabled = state.etapa === 0;
+  $("bNext").textContent = state.etapa === total - 1 ? "Concluir capítulo ✓" : "Concluir e avançar →";
+  const fin = $("fin"), todas = d.every(Boolean);
+  if (todas && fin.hidden) reveal(fin); else if (!todas) fin.hidden = true;
+  swap($("stageBody"), stageHTML(c), animate);
+  centerStep(); salvar();
+}
+
+function suave() {
+  const card = $("card"); if (!card) return;
+  if (card.getBoundingClientRect().top < 140) card.scrollIntoView({ behavior: reduz ? "auto" : "smooth", block: "start" });
+}
+
+/* ---------- Capítulos ---------- */
+function renderCapitulos() {
+  $("capitulos").innerHTML = `<div class="chapter-head"><p class="eyebrow">${MATERIA.nome}</p><h1>Capítulos</h1></div><div class="grid">` +
+    MATERIA.capitulos.map(c => `<button class="cap" data-open="${c.id}">
+      <span class="num">CAPÍTULO ${c.id}</span><h3>${c.titulo}</h3><p>${c.resumo}</p>
+      <div class="bar" aria-hidden="true"><i style="width:${pct(c)}%"></i></div>
+      <span class="meta">${c.vazio ? "Em breve" : feitas(c) + " de " + c.etapas.length + " etapas"}</span></button>`).join("") + "</div>";
+}
+
+/* ---------- Revisão (flashcards) ---------- */
+function renderRevisao() {
+  const c = capAtual();
+  let h = chips() + head("Revisão");
+  if (c.vazio || !c.cards || !c.cards.length) {
+    $("revisao").innerHTML = h + vazio("Os cartões de revisão aparecem quando o conteúdo for adicionado."); return;
+  }
+  h += `<button class="flip" id="flip" data-flip aria-label="Virar cartão"><div class="flip-in">
+      <div class="face"><div><small>TOQUE PARA VIRAR</small><span id="ff"></span></div></div>
+      <div class="face back"><div><small>RESPOSTA</small><span id="fb"></span></div></div></div></button>
+      <div class="cardnav"><button class="btn" data-card="-1">← Anterior</button><span id="cc"></span><button class="btn primary" data-card="1">Próximo →</button></div>`;
+  $("revisao").innerHTML = h;
+  fillCard();
+}
+function fillCard() {
+  const c = capAtual();
+  if (state.card >= c.cards.length) state.card = 0;
+  const [f, v] = c.cards[state.card];
+  $("ff").textContent = f; $("fb").textContent = v;
+  $("cc").textContent = `${state.card + 1} / ${c.cards.length}`;
+}
+function goCard(dir) {
+  const c = capAtual(), n = c.cards.length, f = $("flip");
+  const run = () => {
+    state.card = (state.card + dir + n) % n; fillCard(); salvar();
+    anim(f, [{ opacity: 0, transform: `translateX(${dir * 22}px)` }, { opacity: 1, transform: "none" }], { duration: 300, easing: "cubic-bezier(.2,.7,.2,1)" });
+  };
+  if (state.virado) { state.virado = false; f.classList.remove("show"); setTimeout(run, reduz ? 0 : 280); } else run();
+}
+
+/* ---------- Simulado ---------- */
+const LET = ["A", "B", "C", "D"];
+function simState(c) {
+  let s = state.sim[c.id];
+  if (!s || s.resp.length !== c.simulado.length) s = state.sim[c.id] = { i: 0, resp: c.simulado.map(() => null), conf: c.simulado.map(() => false), fim: false };
+  return s;
+}
+function renderSimulado() {
+  const c = capAtual();
+  let h = chips() + head("Simulado", "Questões de múltipla escolha, nível avançado, sobre este capítulo.");
+  if (c.vazio || !c.simulado || !c.simulado.length) { $("simulado").innerHTML = h + vazio("As questões do simulado aparecem quando o conteúdo for adicionado."); return; }
+  $("simulado").innerHTML = h + '<article class="card" id="simCard"><div id="simBody"></div></article>';
+  drawSim(false);
+}
+function simHTML(c, s) {
+  const n = c.simulado.length;
+  if (s.fim) {
+    const ac = c.simulado.filter((q, i) => s.resp[i] === q.c).length, p = Math.round(100 * ac / n);
+    const msg = p >= 80 ? "Excelente! Você domina o capítulo." : p >= 60 ? "Bom caminho. Revise os pontos que errou." : "Vale voltar à trilha e revisar o capítulo.";
+    return `<p class="progress-text">Resultado</p><div class="score">${ac}/${n}</div><p>${msg}</p>
+      <ul class="review">${c.simulado.map((q, i) => { const ok = s.resp[i] === q.c;
+        return `<li><b class="${ok ? "ok" : "no"}">${ok ? "✓" : "✗"} Questão ${i + 1}</b><br>Resposta certa: ${LET[q.c]}) ${q.o[q.c]}</li>`; }).join("")}</ul>
+      <div class="nav"><button class="btn primary" data-sim="reset">Refazer simulado</button></div>`;
+  }
+  const q = c.simulado[s.i];
+  return `<p class="progress-text">Questão ${s.i + 1} de ${n}</p><div class="bar"><i style="width:${Math.round(100 * s.i / n)}%"></i></div>
+    <p class="qtext">${q.q}</p>
+    <div class="opts">${q.o.map((t, k) => `<button class="opt" data-opt="${k}"><span class="letter">${LET[k]}</span><span>${t}</span></button>`).join("")}</div>
+    <div class="exp" id="exp" hidden></div>
+    <div class="nav"><span></span><button class="btn primary" id="simAct" data-act="confirm">Confirmar</button></div>`;
+}
+function drawSim(animate) {
+  const c = capAtual(), s = simState(c);
+  swap($("simBody"), simHTML(c, s), animate);
+  if (!s.fim) {
+    if (!animate || reduz) paintQ(false);
+    else setTimeout(() => paintQ(false), 160);
+  }
+}
+function paintQ(withAnim) {
+  const c = capAtual(), s = simState(c); if (s.fim || !$("simAct")) return;
+  const q = c.simulado[s.i], conf = s.conf[s.i], sel = s.resp[s.i];
+  document.querySelectorAll("#simBody .opt").forEach((b, k) => {
+    b.classList.toggle("sel", sel === k && !conf);
+    b.classList.toggle("right", conf && k === q.c);
+    b.classList.toggle("wrong", conf && sel === k && k !== q.c);
+    b.disabled = conf;
+  });
+  const exp = $("exp"), acertou = sel === q.c;
+  if (conf) {
+    exp.innerHTML = `<b>${acertou ? "Correto!" : "Resposta certa: " + LET[q.c]}</b>${q.e}`;
+    if (exp.hidden) { if (withAnim) reveal(exp); else exp.hidden = false; }
+  } else exp.hidden = true;
+  const act = $("simAct");
+  act.dataset.act = conf ? "next" : "confirm";
+  act.textContent = conf ? (s.i === c.simulado.length - 1 ? "Ver resultado" : "Próxima →") : "Confirmar";
+  act.disabled = !conf && sel === null;
+}
+
+/* ---------- Abas ---------- */
+const RENDER = { trilha: renderTrilha, capitulos: renderCapitulos, revisao: renderRevisao, simulado: renderSimulado };
+function mostrar(aba, animate) {
+  state.aba = aba;
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.tab === aba)));
+  document.querySelectorAll("main section").forEach(s => s.hidden = s.id !== aba);
+  RENDER[aba]();
+  if (animate) anim($(aba), [{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 340, easing: "cubic-bezier(.2,.7,.2,1)" });
+  salvar();
+}
+
+/* ---------- Eventos ---------- */
+document.querySelector(".tabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-tab]");
+  if (b && b.dataset.tab !== state.aba) mostrar(b.dataset.tab, true);
+});
+document.querySelector("main").addEventListener("click", e => {
+  const t = e.target;
+  const cap = t.closest("[data-cap]");
+  if (cap) { if (+cap.dataset.cap === state.cap) return; state.cap = +cap.dataset.cap; state.etapa = 0; state.card = 0; state.virado = false; return mostrar(state.aba, true); }
+  const open = t.closest("[data-open]");
+  if (open) { state.cap = +open.dataset.open; state.etapa = 0; state.card = 0; return mostrar("trilha", true); }
+  const et = t.closest("[data-etapa]");
+  if (et) { state.etapa = +et.dataset.etapa; updateTrilha(true); return suave(); }
+  const ans = t.closest("[data-ans]");
+  if (ans) {
+    const box = ans.nextElementSibling;
+    if (box.hidden) { reveal(box); ans.textContent = "Esconder resposta"; } else { box.hidden = true; ans.textContent = "Ver resposta"; }
+    return;
+  }
+  const nav = t.closest("[data-nav]");
+  if (nav) {
+    const c = capAtual(), d = state.done[c.id], dir = +nav.dataset.nav;
+    if (dir > 0) { d[state.etapa] = true; if (state.etapa < c.etapas.length - 1) state.etapa++; }
+    else if (state.etapa > 0) state.etapa--;
+    updateTrilha(true); return suave();
+  }
+  if (t.closest("[data-flip]")) { state.virado = !state.virado; $("flip").classList.toggle("show", state.virado); return; }
+  const cd = t.closest("[data-card]");
+  if (cd) return goCard(+cd.dataset.card);
+  const opt = t.closest("[data-opt]");
+  if (opt) { const s = simState(capAtual()); if (!s.conf[s.i]) { s.resp[s.i] = +opt.dataset.opt; paintQ(false); salvar(); } return; }
+  const act = t.closest("[data-act]");
+  if (act) {
+    const c = capAtual(), s = simState(c);
+    if (act.dataset.act === "confirm") { if (s.resp[s.i] !== null) { s.conf[s.i] = true; paintQ(true); salvar(); } }
+    else { if (s.i === c.simulado.length - 1) s.fim = true; else s.i++; drawSim(true); salvar(); suaveSim(); }
+    return;
+  }
+  if (t.closest("[data-sim]")) { delete state.sim[capAtual().id]; drawSim(true); salvar(); suaveSim(); }
+});
+function suaveSim() {
+  const c = $("simCard");
+  if (c && c.getBoundingClientRect().top < 140) c.scrollIntoView({ behavior: reduz ? "auto" : "smooth", block: "start" });
+}
+document.querySelector("main").addEventListener("change", e => {
+  if (e.target.dataset.check) { state.checks[e.target.dataset.check] = e.target.checked; salvar(); }
+});
+
+/* ---------- Corações decorativos ---------- */
+const HEART = '<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+const box = $("hearts");
+function coracao(parado) {
+  const el = document.createElement("div");
+  const s = 16 + Math.random() * 34;
+  el.className = "heart" + (parado ? " still" : "");
+  el.style.width = el.style.height = s + "px";
+  el.style.left = (2 + Math.random() * 94) + "%";
+  el.style.setProperty("--d", (22 + Math.random() * 14) + "s");
+  el.style.setProperty("--o", (0.08 + Math.random() * 0.07).toFixed(2));
+  el.style.setProperty("--x", (Math.random() * 80 - 40) + "px");
+  if (parado) el.style.top = (Math.random() * 90) + "%";
+  el.innerHTML = HEART;
+  el.addEventListener("animationend", () => el.remove());
+  box.appendChild(el);
+}
+if (reduz) { for (let i = 0; i < 7; i++) coracao(true); }
+else {
+  coracao(); setTimeout(coracao, 1500); setTimeout(coracao, 3200);
+  setInterval(() => { if (box.children.length < 9 && !document.hidden) coracao(); }, 4200);
+}
+
+$("subjectName").textContent = MATERIA.nome;
+mostrar(state.aba, false);
+</script>
+</body>
+</html>
